@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Xander Vanoven</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f9f8f6;
+  --fg: #111;
+  --muted: #999;
+  --muted2: #bbb;
+  --hairline: #e0ddd8;
+  --serif: 'EB Garamond', Georgia, serif;
+  --mono: 'DM Mono', 'Courier New', monospace;
+  --accent: #111;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e0e0c;
+    --fg: #e8e5df;
+    --muted: #666;
+    --muted2: #444;
+    --hairline: #1e1e1c;
+  }
+}
+
+html { font-size: 16px; background: var(--bg); color: var(--fg); }
+
+body {
+  font-family: var(--serif);
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  padding: 0 1.5rem;
+  -webkit-font-smoothing: antialiased;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+#cursor-dot {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: var(--fg);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, opacity 0.2s;
+  mix-blend-mode: difference;
+}
+
+#cursor-ring {
+  position: fixed;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width 0.35s cubic-bezier(0.16,1,0.3,1),
+              height 0.35s cubic-bezier(0.16,1,0.3,1),
+              border-color 0.2s;
+  mix-blend-mode: difference;
+}
+
+body.cursor-hover #cursor-dot { width: 10px; height: 10px; }
+body.cursor-hover #cursor-ring { width: 48px; height: 48px; border-color: var(--fg); }
+
+/* ── PROGRESS BAR ── */
+#progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 1px;
+  background: var(--fg);
+  width: 0%;
+  z-index: 1000;
+  transition: width 0.05s linear;
+  opacity: 0.35;
+}
+
+/* ── LAYOUT ── */
+.page {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 5rem 0 7rem;
+}
+
+/* ── LEDE ── */
+.lede {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.44;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 3.5rem;
+  color: var(--fg);
+  user-select: none;
+}
+
+.lede .word {
+  display: inline-block;
+  transition: opacity 0.3s, transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  will-change: transform, opacity;
+}
+
+.lede em { font-style: italic; }
+.lede strong { font-weight: 500; }
+
+/* ── NAV ── */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 4.5rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.01em;
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.3rem 0;
+  margin-right: 1.75rem;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--fg);
+  transition: width 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+
+.nav a:hover::after, .nav a.active::after { width: 100%; }
+.nav a:hover, .nav a.active { color: var(--fg); }
+
+/* ── SECTION ── */
+.section { margin-bottom: 4.5rem; }
+
+.section-title {
+  font-family: var(--mono);
+  font-size: 0.63rem;
+  letter-spacing: 0.1em;
+  color: var(--muted2);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+/* ── EXPERIENCE ── */
+.exp-list { list-style: none; }
+
+.exp-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem 2rem;
+  align-items: start;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--hairline);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.exp-item::before {
+  content: '';
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--fg);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+.exp-item.open::before { transform: scaleY(1); }
+.exp-item:first-child { border-top: 1px solid var(--hairline); }
+
+.exp-role {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--fg);
+  display: block;
+  line-height: 1.35;
+  transition: opacity 0.2s;
+}
+
+.exp-company {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+  display: block;
+  transition: color 0.2s;
+}
+
+.exp-item:hover .exp-company { color: var(--fg); }
+
+.exp-date {
+  font-family: var(--mono);
+  font-size: 0.63rem;
+  color: var(--muted);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  padding-top: 0.1rem;
+}
+
+.exp-toggle {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted2);
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.1rem;
+  user-select: none;
+}
+
+.exp-toggle .arrow {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+.exp-item.open .exp-toggle .arrow { transform: rotate(90deg); }
+
+.exp-detail {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.3s;
+  opacity: 0;
+}
+
+.exp-item.open .exp-detail {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.exp-detail-inner {
+  padding: 0.4rem 0 0.75rem;
+}
+
+.exp-detail ul { padding-left: 0; list-style: none; }
+
+.exp-detail ul li {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.68;
+  margin-bottom: 0.4rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.exp-detail ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.exp-detail .metric {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+/* ── PROJECTS ── */
+.proj-list { list-style: none; }
+
+.proj-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--hairline);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem 2rem;
+  align-items: baseline;
+  cursor: default;
+  transition: padding-left 0.3s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+  overflow: hidden;
+}
+
+.proj-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  width: 0;
+  background: var(--fg);
+  transition: width 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+
+.proj-item:hover::after { width: 100%; }
+.proj-item:first-child { border-top: 1px solid var(--hairline); }
+
+.proj-name {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--fg);
+  transition: letter-spacing 0.3s;
+}
+
+.proj-item:hover .proj-name { letter-spacing: 0.01em; }
+
+.proj-desc {
+  grid-column: 1;
+  font-family: var(--mono);
+  font-size: 0.63rem;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+  margin-top: 0.1rem;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.25s, margin-top 0.2s;
+}
+
+.proj-item:hover .proj-desc {
+  max-height: 60px;
+  opacity: 1;
+  margin-top: 0.3rem;
+}
+
+.proj-stack {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted2);
+  white-space: nowrap;
+  align-self: start;
+  padding-top: 0.2rem;
+}
+
+/* ── COURSEWORK ── */
+.paper {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--hairline);
+  position: relative;
+}
+
+.paper:first-child { border-top: 1px solid var(--hairline); }
+
+.paper-loc {
+  font-family: var(--mono);
+  font-size: 0.63rem;
+  letter-spacing: 0.06em;
+  color: var(--muted2);
+  margin-bottom: 0.5rem;
+}
+
+.paper-title {
+  font-size: 1.1rem;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--fg);
+  line-height: 1.4;
+  margin-bottom: 0.65rem;
+}
+
+.paper-body {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.78;
+  max-width: 480px;
+}
+
+.paper-insight {
+  margin-top: 0.9rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--hairline);
+  font-size: 0.875rem;
+  color: var(--fg);
+  line-height: 1.72;
+  font-style: italic;
+  transition: border-color 0.3s;
+}
+
+.paper:hover .paper-insight { border-left-color: var(--fg); }
+
+/* ── REFLECTION ── */
+.reflect-list { list-style: none; }
+
+.reflect-item {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--hairline);
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 0 2rem;
+}
+
+.reflect-item:first-child { border-top: 1px solid var(--hairline); }
+
+.reflect-stage {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--muted2);
+  text-transform: uppercase;
+  line-height: 1.6;
+  padding-top: 0.1rem;
+}
+
+.reflect-right {}
+
+.reflect-head {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--fg);
+  margin-bottom: 0.4rem;
+  line-height: 1.35;
+}
+
+.reflect-body {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.8;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.3s;
+}
+
+.reflect-item:hover .reflect-body,
+.reflect-item:focus-within .reflect-body {
+  max-height: 200px;
+  opacity: 1;
+}
+
+/* ── SKILLS ── */
+.skill-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 0.6rem 2rem;
+  align-items: baseline;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.skill-row:first-child { border-top: 1px solid var(--hairline); }
+
+.skill-cat {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted2);
+  letter-spacing: 0.04em;
+}
+
+.skill-items {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.skill-items .chip {
+  display: inline;
+  transition: color 0.15s;
+  cursor: default;
+}
+
+.skill-items .chip:hover { color: var(--fg); }
+
+/* ── FOOTER ── */
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--hairline);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  align-items: center;
+}
+
+.footer-links a, .footer-links button {
+  color: var(--muted);
+  text-decoration: none;
+  margin-right: 1.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
+  padding: 0;
+  position: relative;
+  transition: color 0.15s;
+}
+
+.footer-links a::after, .footer-links button::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--fg);
+  transition: width 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+
+.footer-links a:hover::after, .footer-links button:hover::after { width: 100%; }
+.footer-links a:hover, .footer-links button:hover { color: var(--fg); }
+
+#email-status {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted2);
+  opacity: 0;
+  transition: opacity 0.3s;
+  margin-left: -1.2rem;
+}
+
+#email-status.show { opacity: 1; }
+
+.footer-note {
+  width: 100%;
+  margin-top: 1rem;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  color: var(--muted2);
+  opacity: 0.6;
+}
+
+/* ── SCROLL FADE ── */
+.fade {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1);
+}
+.fade.in { opacity: 1; transform: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 520px) {
+  body { cursor: auto; }
+  #cursor-dot, #cursor-ring { display: none; }
+  .page { padding: 3.5rem 0 5rem; }
+  .lede { font-size: 1.35rem; }
+  .reflect-item { grid-template-columns: 1fr; gap: 0.3rem; }
+  .skill-row { grid-template-columns: 1fr; gap: 0.15rem; }
+  .skill-cat { margin-bottom: 0.1rem; }
+  .exp-item { grid-template-columns: 1fr; }
+  .exp-date { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+<div id="progress"></div>
+
+<main class="page">
+
+  <!-- LEDE -->
+  <p class="lede" id="lede">I am <strong>Xander Vanoven,</strong> a junior at the University of Houston C.T. Bauer College of Business studying <em>Management Information Systems</em> building towards a career as a <strong>data engineer.</strong> Currently working for <em>Perry Homes</em> and have worked for <em>ENGIE North America</em> and <em>Hewlett Packard Enterprise,</em> I am obsessed with the intersection of infrastructure and <strong>machine learning.</strong></p>
+
+  <!-- NAV -->
+  <nav class="nav" aria-label="Page sections">
+    <a href="#experience" data-section="experience">Experience</a>
+    <a href="#projects" data-section="projects">Projects</a>
+    <a href="#coursework" data-section="coursework">Coursework</a>
+    <a href="#reflection" data-section="reflection">Reflection</a>
+    <a href="#skills" data-section="skills">Skills</a>
+    <a href="https://www.linkedin.com/in/xander-vanoven" target="_blank" rel="noopener">LinkedIn &#8599;</a>
+  </nav>
+
+  <!-- EXPERIENCE -->
+  <section class="section fade" id="experience">
+    <div class="section-title">Experience</div>
+    <ul class="exp-list">
+
+      <li class="exp-item" tabindex="0">
+        <div class="exp-left">
+          <span class="exp-role">Data Operations Analyst Intern</span>
+          <span class="exp-company">Perry Homes &middot; Houston, TX</span>
+          <span class="exp-toggle"><span class="arrow">&#8250;</span> expand</span>
+        </div>
+        <span class="exp-date">Sep 2026 &ndash; present</span>
+        <div class="exp-detail">
+          <div class="exp-detail-inner">
+            <ul>
+              <li>Architecting scalable BI infrastructure across enterprise Power BI workspaces serving <span class="metric">50+ concurrent users</span> in Customer Experience, Marketing, and Product.</li>
+              <li>Establishing governance frameworks and audit trails across <span class="metric">5+ business functions,</span> ensuring enterprise data access compliance.</li>
+              <li>Maintaining monthly reporting automation pipeline standardizing KPI delivery to executive stakeholders.</li>
+            </ul>
+          </div>
+        </div>
+      </li>
+
+      <li class="exp-item" tabindex="0">
+        <div class="exp-left">
+          <span class="exp-role">Process Automation Intern</span>
+          <span class="exp-company">Hewlett Packard Enterprise &middot; Spring, TX</span>
+          <span class="exp-toggle"><span class="arrow">&#8250;</span> expand</span>
+        </div>
+        <span class="exp-date">May &ndash; Aug 2026</span>
+        <div class="exp-detail">
+          <div class="exp-detail-inner">
+            <ul>
+              <li>Reduced manual documentation effort by <span class="metric">66%</span> building a governance platform supporting <span class="metric">70+ projects</span> via Power Apps, Power Automate, SharePoint, Power BI, and Copilot Studio.</li>
+              <li>Increased reporting efficiency by <span class="metric">32%</span> across 28 business areas, designing data models for <span class="metric">8+ enterprise sources.</span></li>
+              <li>Reduced project cycle times by <span class="metric">12%</span> across 51+ projects through standardized intake and automated workflow execution.</li>
+            </ul>
+          </div>
+        </div>
+      </li>
+
+      <li class="exp-item" tabindex="0">
+        <div class="exp-left">
+          <span class="exp-role">BI &amp; Data Architecture Intern</span>
+          <span class="exp-company">ENGIE North America &middot; Houston, TX</span>
+          <span class="exp-toggle"><span class="arrow">&#8250;</span> expand</span>
+        </div>
+        <span class="exp-date">Jan &ndash; May 2026</span>
+        <div class="exp-detail">
+          <div class="exp-detail-inner">
+            <ul>
+              <li>Architected end-to-end data models for <span class="metric">8+ enterprise sources,</span> surfacing executive KPI dashboards across safety compliance and renewable energy operations.</li>
+              <li>Transformed <span class="metric">5,000+ operational records</span> using DAX and Power Query, delivering interactive dashboards to <span class="metric">200+ users.</span></li>
+              <li>Influenced future data strategy through SQL ownership analysis and governance standardization recommendations.</li>
+            </ul>
+          </div>
+        </div>
+      </li>
+
+      <li class="exp-item" tabindex="0">
+        <div class="exp-left">
+          <span class="exp-role">Data &amp; Operations Analyst</span>
+          <span class="exp-company">Classic CDJRF &middot; Arlington, TX</span>
+          <span class="exp-toggle"><span class="arrow">&#8250;</span> expand</span>
+        </div>
+        <span class="exp-date">Sep 2024 &ndash; Aug 2025</span>
+        <div class="exp-detail">
+          <div class="exp-detail-inner">
+            <ul>
+              <li>Recovered <span class="metric">$75K+</span> in lost revenue via a Key-Track inventory analytics system identifying misallocated vehicles.</li>
+              <li>Reduced customer wait times by <span class="metric">75%</span> through data-driven lot layout optimization.</li>
+              <li>Achieved <span class="metric">100% pass rate</span> across all quarterly audits with standardized inventory tracking and audit-ready documentation.</li>
+            </ul>
+          </div>
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="section fade" id="projects">
+    <div class="section-title">Projects</div>
+    <ul class="proj-list">
+
+      <li class="proj-item">
+        <span class="proj-name">Shelter Outcome Predictor</span>
+        <span class="proj-stack">Python &middot; Scikit-Learn &middot; Streamlit</span>
+        <span class="proj-desc">ML classification pipeline, 6-class animal shelter outcome prediction deployed for real-time decision support.</span>
+      </li>
+
+      <li class="proj-item">
+        <span class="proj-name">NOVA &mdash; AI Risk Platform</span>
+        <span class="proj-stack">Flask &middot; PostgreSQL &middot; Azure &middot; n8n &middot; OpenAI</span>
+        <span class="proj-desc">Full-stack threat remediation: weighted scoring engine, database layer, OpenAI-generated recommendations, HTML dashboard.</span>
+      </li>
+
+      <li class="proj-item">
+        <span class="proj-name">NBA Draft Analytics Suite</span>
+        <span class="proj-stack">Python &middot; k-NN &middot; Data Viz</span>
+        <span class="proj-desc">Similarity dashboard and k-NN rookie projections for the NBA Draft, combining draft efficiency analysis with ML comparables.</span>
+      </li>
+
+      <li class="proj-item">
+        <span class="proj-name">AI Internship Readiness Research</span>
+        <span class="proj-stack">Research &middot; Insperity</span>
+        <span class="proj-desc">Evaluated 10+ AI programs across public and private domains; published internally at Insperity on proper AI tool adoption.</span>
+      </li>
+
+    </ul>
+  </section>
+
+  <!-- COURSEWORK -->
+  <section class="section fade" id="coursework">
+    <div class="section-title">Coursework &mdash; INTB 3355</div>
+
+    <div class="paper">
+      <div class="paper-loc">Germany &middot; Legal Frameworks &middot; Oct 2026</div>
+      <div class="paper-title">Navigating International Legal Frameworks: Entering Germany's Renewable Energy Market</div>
+      <p class="paper-body">Analyzed the BGB civil code, Energiewende policy risk, FDI screening under the AWG, and German employment law (KSchG/BetrVG) for a hypothetical U.S. energy tech firm. The EEG has been revised seven times since 2000 and some revisions retroactively impacted existing project finance. Data models built without regulatory scenario planning are fragile.</p>
+      <p class="paper-insight">The same lesson applies to enterprise analytics infrastructure: governance is not overhead, it is the product's credibility layer. This paper reframed how I think about the audit trails I build at Perry Homes.</p>
+    </div>
+
+    <div class="paper">
+      <div class="paper-loc">Japan &middot; Cultural Environment &middot; Oct 2026</div>
+      <div class="paper-title">Culture Unlocked: Entering Japan's Technology and Data Market</div>
+      <p class="paper-body">Applied Hall's high-context/low-context framework and Trompenaars' cultural dimensions to Japanese enterprise technology sales, examining how nemawashi, the ringi system, and ascription-based hierarchy reshape every step of a U.S. tech firm's market entry. In Japan, a data platform however technically superior fails without the relational infrastructure first.</p>
+      <p class="paper-insight">This flipped my assumption that the best-performing system wins. Context, trust, and timing matter as much as architecture. A direct, low-context data presentation style fails in a high-context environment where meaning comes from relationship, not explicit output.</p>
+    </div>
+
+  </section>
+
+  <!-- REFLECTION -->
+  <section class="section fade" id="reflection">
+    <div class="section-title">Reflection &mdash; How this semester changed my thinking</div>
+    <ul class="reflect-list">
+
+      <li class="reflect-item" tabindex="0">
+        <div class="reflect-stage">Where I<br>started</div>
+        <div class="reflect-right">
+          <div class="reflect-head">Technical by default.</div>
+          <p class="reflect-body">I came into this course thinking in systems, pipelines, models, dashboards. Business was a wrapper around the data problem. Three internships of real-world experience, all domestic, all inside U.S. companies. I had never seriously considered what happens when the system you are building has to exist inside a different legal code, a different communication culture, or a different regulatory regime.</p>
+        </div>
+      </li>
+
+      <li class="reflect-item" tabindex="0">
+        <div class="reflect-stage">What I<br>learned</div>
+        <div class="reflect-right">
+          <div class="reflect-head">Systems are contextual.</div>
+          <p class="reflect-body">The Germany paper was the turning point. Solar developers who built revenue models on existing feed-in tariffs defaulted when rates changed in 2012. That is not a data problem. It is a scenario modeling problem, a governance problem, a risk architecture problem. The same kind of problem I face when building dashboards people make real decisions with.</p>
+        </div>
+      </li>
+
+      <li class="reflect-item" tabindex="0">
+        <div class="reflect-stage">Where I<br>applied it</div>
+        <div class="reflect-right">
+          <div class="reflect-head">Governance as communication.</div>
+          <p class="reflect-body">At Perry Homes I am not just building dashboards. I am building governance frameworks and audit trails across five-plus business functions. This semester gave me language for why that work matters: data infrastructure is a form of institutional trust. I started documenting decisions differently, with the stakeholder's context in mind, not just the technical specification.</p>
+        </div>
+      </li>
+
+      <li class="reflect-item" tabindex="0">
+        <div class="reflect-stage">How I<br>developed</div>
+        <div class="reflect-right">
+          <div class="reflect-head">Pipeline thinker to systems thinker.</div>
+          <p class="reflect-body">Before this course, I described a data system as a pipeline: input, transform, output. Now I describe it as an embedded artifact shaped by the legal environment it operates in, the cultural norms of its users, the regulatory constraints on what can be collected, and the institutional relationships that determine whether anyone trusts the output at all.</p>
+        </div>
+      </li>
+
+      <li class="reflect-item" tabindex="0">
+        <div class="reflect-stage">Where I'm<br>going</div>
+        <div class="reflect-right">
+          <div class="reflect-head">Global data infrastructure.</div>
+          <p class="reflect-body">Energy data is global. The pipelines I build will touch systems governed by EU taxonomy regulations, GDPR, country-specific grid compliance rules, and cross-cultural stakeholder relationships. This course gave me the foundation to not be surprised by any of that. The commitment going forward: before designing any data system, ask who it serves, what regulatory environment it operates in, and what it means for it to be trusted, not just accurate.</p>
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="section fade" id="skills">
+    <div class="section-title">Skills</div>
+    <div class="skill-row"><span class="skill-cat">Languages</span><span class="skill-items"><span class="chip">Python</span>, <span class="chip">SQL</span>, <span class="chip">DAX</span>, <span class="chip">HTML/CSS</span>, <span class="chip">JavaScript</span></span></div>
+    <div class="skill-row"><span class="skill-cat">BI &amp; Analytics</span><span class="skill-items"><span class="chip">Power BI</span>, <span class="chip">Power Query</span>, <span class="chip">Tableau</span>, <span class="chip">Excel</span></span></div>
+    <div class="skill-row"><span class="skill-cat">Machine learning</span><span class="skill-items"><span class="chip">Scikit-Learn</span>, <span class="chip">Pandas</span>, <span class="chip">Matplotlib</span>, <span class="chip">k-NN</span>, <span class="chip">classification pipelines</span></span></div>
+    <div class="skill-row"><span class="skill-cat">Cloud &amp; platforms</span><span class="skill-items"><span class="chip">Azure</span>, <span class="chip">SharePoint</span>, <span class="chip">Power Apps</span>, <span class="chip">Power Automate</span>, <span class="chip">n8n</span></span></div>
+    <div class="skill-row"><span class="skill-cat">Data engineering</span><span class="skill-items"><span class="chip">ETL pipelines</span>, <span class="chip">data modeling</span>, <span class="chip">governance frameworks</span>, <span class="chip">PostgreSQL</span></span></div>
+    <div class="skill-row"><span class="skill-cat">International</span><span class="skill-items"><span class="chip">Hall's frameworks</span>, <span class="chip">Trompenaars dimensions</span>, <span class="chip">regulatory risk</span>, <span class="chip">cross-cultural communication</span></span></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer-links">
+    <a href="https://www.linkedin.com/in/xander-vanoven" target="_blank" rel="noopener">LinkedIn &#8599;</a>
+    <button id="email-btn" onclick="copyEmail()">Email</button>
+    <span id="email-status">Copied</span>
+    <span class="footer-note">Xander Vanoven &middot; MIS, UH Bauer &middot; Class of 2027 &middot; Final project for INTB 3355, Prof. Cate Wengelnik &middot; Fall 2026</span>
+  </footer>
+
+</main>
+
+<script>
+// ── CURSOR ──
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  dot.style.left = mx + 'px';
+  dot.style.top  = my + 'px';
+});
+
+(function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('a, button, .exp-item, .proj-item, .reflect-item, .chip').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+// ── PROGRESS ──
+const bar = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+  bar.style.width = pct + '%';
+}, { passive: true });
+
+// ── LEDE WORD WARP ──
+const lede = document.getElementById('lede');
+// Wrap words preserving HTML tags
+lede.innerHTML = lede.innerHTML.replace(/(<[^>]+>)|([^<\s][^<]*[^<\s]|[^<\s])/g, (match, tag, text) => {
+  if (tag) return tag;
+  return text.split(/(\s+)/).map(part =>
+    /\s/.test(part) ? part : `<span class="word">${part}</span>`
+  ).join('');
+});
+
+const words = lede.querySelectorAll('.word');
+document.addEventListener('mousemove', e => {
+  const cx = e.clientX, cy = e.clientY;
+  words.forEach(w => {
+    const r = w.getBoundingClientRect();
+    const wx = r.left + r.width / 2, wy = r.top + r.height / 2;
+    const dist = Math.sqrt((cx - wx) ** 2 + (cy - wy) ** 2);
+    const radius = 120;
+    if (dist < radius) {
+      const strength = (1 - dist / radius) * 5;
+      const angle = Math.atan2(wy - cy, wx - cx);
+      const dx = Math.cos(angle) * strength;
+      const dy = Math.sin(angle) * strength;
+      w.style.transform = `translate(${dx}px, ${dy}px)`;
+      w.style.opacity = 0.5 + (dist / radius) * 0.5;
+    } else {
+      w.style.transform = '';
+      w.style.opacity = '';
+    }
+  });
+});
+
+// ── EXPERIENCE EXPAND ──
+document.querySelectorAll('.exp-item').forEach(item => {
+  const toggle = (e) => {
+    if (!e.target.closest('a')) {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.exp-item.open').forEach(o => {
+        if (o !== item) o.classList.remove('open');
+      });
+      item.classList.toggle('open', !isOpen);
+    }
+  };
+  item.addEventListener('click', toggle);
+  item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(e); } });
+});
+
+// ── SCROLL REVEAL ──
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade').forEach(el => revealObs.observe(el));
+
+// ── ACTIVE NAV ──
+const sections = ['experience','projects','coursework','reflection','skills'];
+const navLinks = document.querySelectorAll('.nav a[data-section]');
+const sectObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(a => a.classList.toggle('active', a.dataset.section === e.target.id));
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+sections.forEach(id => { const el = document.getElementById(id); if (el) sectObs.observe(el); });
+
+// ── EMAIL ──
+function copyEmail() {
+  navigator.clipboard.writeText('xandervanoven@gmail.com').then(() => {
+    const s = document.getElementById('email-status');
+    s.classList.add('show');
+    setTimeout(() => s.classList.remove('show'), 2000);
+  });
+}
+</script>
+</body>
+</html>
